@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
+// The code [MyApp] sets up the whole app.
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -25,15 +26,15 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// 應用程式狀態
 class MyAppState extends ChangeNotifier {
   var current = WordPair.random();
-
   var favorites = <WordPair>[];
 
+  /// 取得下一個
   void getNext() {
     current = WordPair.random();
-
-    super.notifyListeners();
+    notifyListeners();
   }
 
   void toggleFavorite() {
@@ -43,45 +44,75 @@ class MyAppState extends ChangeNotifier {
       favorites.add(current);
     }
 
-    super.notifyListeners();
+    notifyListeners();
   }
 }
 
-class MyHomePage extends StatelessWidget {
+// 首頁
+class MyHomePage extends StatefulWidget {
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  var selectedIndex = 0;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Row(
-        children: [
-          SafeArea(
-              child: NavigationRail(
-            extended: false,
-            destinations: [
-              NavigationRailDestination(
-                icon: Icon(Icons.home),
-                label: Text("Home"),
+    Widget page;
+    switch (selectedIndex) {
+      case 0:
+        page = GeneratorPage();
+        break;
+      case 1:
+        page = Placeholder();
+        break;
+      default:
+        throw UnimplementedError('no widget for $selectedIndex');
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Scaffold(
+          body: Row(
+            children: [
+              SafeArea(
+                child: NavigationRail(
+                  extended: false,
+                  destinations: [
+                    NavigationRailDestination(
+                      icon: Icon(Icons.home),
+                      label: Text('Home'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.favorite),
+                      label: Text('Favorites'),
+                    ),
+                  ],
+                  selectedIndex: selectedIndex,
+                  onDestinationSelected: (value) {
+                    // 方法 'setState' 會重新跑State的build
+                    super.setState(() {
+                      selectedIndex = value;
+                    });
+                  },
+                ),
               ),
-              NavigationRailDestination(
-                icon: Icon(Icons.favorite),
-                label: Text("Favorites"),
+              Expanded(
+                child: Container(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: page,
+                ),
               ),
             ],
-            selectedIndex: 0,
-            onDestinationSelected: (value) {
-              print('selected : $value');
-            },
-          )),
-          Expanded(
-              child: Container(
-            color: Theme.of(context).colorScheme.primaryContainer,
-            child: GeneratorPage(),
-          ))
-        ],
-      ),
+          ),
+        );
+      }
     );
   }
 }
 
+// 組成頁面
 class GeneratorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -95,36 +126,32 @@ class GeneratorPage extends StatelessWidget {
       icon = Icons.favorite_border;
     }
 
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            BigCard(pair: pair),
-            SizedBox(height: 10),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    appState.toggleFavorite();
-                  },
-                  icon: Icon(icon),
-                  label: Text('Like'),
-                ),
-                SizedBox(
-                  width: 10,
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    appState.getNext();
-                  },
-                  child: Text('Next'),
-                ),
-              ],
-            )
-          ],
-        ),
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          BigCard(pair: pair),
+          SizedBox(height: 10),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () {
+                  appState.toggleFavorite();
+                },
+                icon: Icon(icon),
+                label: Text('Like'),
+              ),
+              SizedBox(width: 10),
+              ElevatedButton(
+                onPressed: () {
+                  appState.getNext();
+                },
+                child: Text('Next'),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -141,6 +168,7 @@ class BigCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
+
     var style = theme.textTheme.displayMedium!.copyWith(
       color: theme.colorScheme.onPrimary,
     );
@@ -148,7 +176,7 @@ class BigCard extends StatelessWidget {
     return Card(
       color: theme.colorScheme.primary,
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(20),
         child: Text(
           pair.asLowerCase,
           style: style,
