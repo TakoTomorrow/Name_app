@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../my_app_State.dart';
+import '../my_app_state.dart';
 
 /// 我的最愛Page
 class FavoritesPage extends StatelessWidget {
